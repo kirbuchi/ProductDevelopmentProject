@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from app import db
+from flask_sqlalchemy import SQLAlchemy
+db = SQLAlchemy()
 
 # intermediary table for RiskType to GenericField M2M relationship
 risk_types_fields_relationship = db.Table(
@@ -32,6 +33,14 @@ class RiskType(db.Model):
     def __repr__(self):
         return '<RiskType {}: {}>'.format(self.id, self.name)
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "description": self.description,
+            "fields": [field.to_dict() for field in self.fields]
+        }
+
 
 class GenericField(db.Model):
     """
@@ -55,6 +64,14 @@ class GenericField(db.Model):
     def __repr__(self):
         return '<Field {}: {}>'.format(self.id, self.name)
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "description": self.description,
+            "type": self.field_type.code,
+        }
+
 
 class FieldType(db.Model):
     """
@@ -62,7 +79,6 @@ class FieldType(db.Model):
     """
 
     __tablename__ = 'field_types'
-
     id = db.Column(db.Integer, primary_key=True)
     code = db.Column(db.Text, unique=True)
     description = db.Column(db.Text)
