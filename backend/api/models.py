@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 import enum
 
+import sqlalchemy_jsonfield
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import validates
 
-import sqlalchemy_jsonfield
+from api.validators import validate_field_options
 
 db = SQLAlchemy()
 
@@ -53,22 +54,6 @@ class RiskType(db.Model):
             "description": self.description,
             "fields": [field.to_dict() for field in self.fields]
         }
-
-def validate_field_options(options, field_type):
-    """
-    Validate the `field_options` object.
-    """
-    if field_type != FieldType.ENUM:
-        # we currently only use extra options for the `enum` field type.
-        # other field type's options are ignored
-        return {}
-    if not isinstance(options, dict):
-        raise ValueError('field_options must be a dictionary.')
-    enum_choices = options.get('choices', [])
-    if not isinstance(enum_choices, list) or len(enum_choices) < 1:
-        raise ValueError('enum fields must include a list of of "choices".')
-
-    return options
 
 
 class GenericField(db.Model):
