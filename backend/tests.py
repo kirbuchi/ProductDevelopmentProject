@@ -87,11 +87,50 @@ class ModelTestCase(unittest.TestCase):
         # each risk type's field must be the same
         assert real_state_risk.fields[0] == car_risk.fields[0]
 
-    def test_enum_type_requires_options(self):
+    def test_enum_type_happy_path(self):
         """
-        Enum-typed fields may not be created without specifying some options.
+        Enum-typed fields should receive an extra `field_options` parameter.
         """
-        pass
+        field_types = create_field_types(self.db)
+        field_options = { 'choices': ['One', 'Two', 'Three'] }
+        enum_type_field = GenericField('An enum-typed field',
+                                       field_type=field_types['enum'],
+                                       field_options=field_options)
+        self.db.session.add(enum_type_field)
+        self.db.session.commit()
+        saved_field = GenericField.query.first()
+        assert saved_field is not None
+        assert saved_field.field_options == field_options
+
+    def test_enum_type_requires_options_dict(self):
+        """
+        Enum-typed fields may not be created without specifying `field_options`.
+        """
+        field_types = create_field_types(self.db)
+        with self.assertRaises(ValueError):
+            enum_type_field = GenericField('Enum field without options',
+                                           field_type=field_types['enum'])
+
+    def test_enum_type_requires_options_dict_with_at_least_one_choice(self):
+        """
+        Enum-typed fields may not be created without specifying some choices in
+        the field_options field.
+        """
+        field_types = create_field_types(self.db)
+        with self.assertRaises(ValueError):
+            enum_type_field = GenericField('Enum field with empty choices',
+                                           field_type=field_types['enum'],
+                                           field_options={ 'choices': [] })
+
+    def test_enum_type_requires_options_dict(self):
+        """
+        Enum-typed fields require a dictionary as their `field_options`.
+        """
+        field_types = create_field_types(self.db)
+        with self.assertRaises(ValueError):
+            enum_type_field = GenericField('Enum field with non-dict options',
+                                           field_type=field_types['enum'],
+                                           field_options='not a dictionary')
 
 
 class APITestCase(unittest.TestCase):
