@@ -5,18 +5,6 @@ import api
 from api.models import RiskType, GenericField, FieldType
 
 
-def create_field_types(db):
-    field_types = {
-        'text': FieldType('text', 'Text type description'),
-        'number': FieldType('number', 'Number type description'),
-        'date': FieldType('date', 'Date type description'),
-        'enum': FieldType('enum', 'Enum type description'),
-    }
-    db.session.add_all([*field_types.values()])
-    db.session.commit()
-    return field_types
-
-
 class ModelTestCase(unittest.TestCase):
 
     def setUp(self):
@@ -33,18 +21,16 @@ class ModelTestCase(unittest.TestCase):
             name='Real State Risk Profile',
             description='Risk model for house/real state insurance'
         )
-        # create field types
-        field_types = create_field_types(self.db)
         # create generic fields
         address_field = GenericField(name='Address',
                                      description='Property\'s address',
-                                     field_type=field_types['text'])
+                                     field_type=FieldType.TEXT)
         cost_field = GenericField(name='Cost',
                                   description='Current market price for the property',
-                                  field_type=field_types['number'])
+                                  field_type=FieldType.NUMBER)
         build_date_field = GenericField(name='Built Date',
                                         description='The date the house was built',
-                                        field_type=field_types['date'])
+                                        field_type=FieldType.DATE)
         # add generic fields to risk type
         real_state_risk.fields.extend([address_field, cost_field, build_date_field])
         # commit
@@ -69,9 +55,8 @@ class ModelTestCase(unittest.TestCase):
         car_risk = RiskType(name=car_risk_title)
 
         # create a single field and add it to both types
-        field_types = create_field_types(self.db)
         cost_field = GenericField(name='Cost', description='Asset\'s Cost',
-                                  field_type=field_types['number'])
+                                  field_type=FieldType.NUMBER)
         real_state_risk.fields.append(cost_field)
         car_risk.fields.append(cost_field)
         self.db.session.add_all([real_state_risk, car_risk, cost_field])
@@ -91,10 +76,9 @@ class ModelTestCase(unittest.TestCase):
         """
         Enum-typed fields should receive an extra `field_options` parameter.
         """
-        field_types = create_field_types(self.db)
         field_options = { 'choices': ['One', 'Two', 'Three'] }
         enum_type_field = GenericField('An enum-typed field',
-                                       field_type=field_types['enum'],
+                                       field_type=FieldType.ENUM,
                                        field_options=field_options)
         self.db.session.add(enum_type_field)
         self.db.session.commit()
@@ -106,30 +90,27 @@ class ModelTestCase(unittest.TestCase):
         """
         Enum-typed fields may not be created without specifying `field_options`.
         """
-        field_types = create_field_types(self.db)
         with self.assertRaises(ValueError):
             enum_type_field = GenericField('Enum field without options',
-                                           field_type=field_types['enum'])
+                                           field_type=FieldType.ENUM)
 
     def test_enum_type_requires_options_dict_with_at_least_one_choice(self):
         """
         Enum-typed fields may not be created without specifying some choices in
         the field_options field.
         """
-        field_types = create_field_types(self.db)
         with self.assertRaises(ValueError):
             enum_type_field = GenericField('Enum field with empty choices',
-                                           field_type=field_types['enum'],
+                                           field_type=FieldType.ENUM,
                                            field_options={ 'choices': [] })
 
     def test_enum_type_requires_options_dict(self):
         """
         Enum-typed fields require a dictionary as their `field_options`.
         """
-        field_types = create_field_types(self.db)
         with self.assertRaises(ValueError):
             enum_type_field = GenericField('Enum field with non-dict options',
-                                           field_type=field_types['enum'],
+                                           field_type=FieldType.ENUM,
                                            field_options='not a dictionary')
 
 

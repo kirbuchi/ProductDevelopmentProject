@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import enum
 
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import validates
@@ -6,6 +7,14 @@ from sqlalchemy.orm import validates
 import sqlalchemy_jsonfield
 
 db = SQLAlchemy()
+
+
+class FieldType(enum.Enum):
+    TEXT = 'text'
+    NUMBER = 'number'
+    DATE = 'date'
+    ENUM = 'enum'
+
 
 # intermediary table for RiskType to GenericField M2M relationship
 risk_types_fields_relationship = db.Table(
@@ -49,7 +58,7 @@ def validate_field_options(options, field_type):
     """
     Validate the `field_options` object.
     """
-    if field_type != 'enum':
+    if field_type != FieldType.ENUM:
         # we currently only use extra options for the `enum` field type.
         # other field type's options are ignored
         return {}
@@ -61,6 +70,7 @@ def validate_field_options(options, field_type):
 
     return options
 
+
 class GenericField(db.Model):
     """
     Holds generic fields that can be added to different risk types.
@@ -71,9 +81,7 @@ class GenericField(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text, unique=True)
     description = db.Column(db.Text)
-    field_type_id = db.Column(db.Integer, db.ForeignKey('field_types.id'),
-                              nullable=False)
-    field_type = db.relationship('FieldType', backref='fields')
+    field_type = db.Column(db.Enum(FieldType))
     field_options = db.Column(sqlalchemy_jsonfield.JSONField())
 
     def __init__(self, name, field_type, description='', field_options=None):
@@ -87,7 +95,7 @@ class GenericField(db.Model):
 
     @validates('field_options')
     def validate_address(self, key, field_options):
-        return validate_field_options(field_options, self.field_type.code)
+        return validate_field_options(field_options, self.field_type)
 
     def to_dict(self):
         return {
@@ -96,21 +104,3 @@ class GenericField(db.Model):
             "description": self.description,
             "type": self.field_type.code,
         }
-
-
-class FieldType(db.Model):
-    """
-    Holds base types for generic fields.
-    """
-
-    __tablename__ = 'field_types'
-    id = db.Column(db.Integer, primary_key=True)
-    code = db.Column(db.Text, unique=True)
-    description = db.Column(db.Text)
-
-    def __init__(self, code, description=''):
-        self.code = code
-        self.description = description
-
-    def __repr__(self):
-        return '<FieldType {}: {}>'.format(self.id, self.code)
