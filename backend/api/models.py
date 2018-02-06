@@ -26,7 +26,7 @@ class RiskType(db.Model):
     fields = db.relationship('GenericField',
                              secondary=risk_types_fields_relationship)
 
-    def __init__(self, name, description):
+    def __init__(self, name, description=''):
         self.name = name
         self.description = description
 
@@ -56,7 +56,7 @@ class GenericField(db.Model):
                               nullable=False)
     field_type = db.relationship('FieldType', backref='fields')
 
-    def __init__(self, name, description, field_type):
+    def __init__(self, name, field_type, description=''):
         self.name = name
         self.description = description
         self.field_type = field_type
