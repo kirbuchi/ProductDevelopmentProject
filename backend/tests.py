@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 import unittest
+from uuid import uuid4
+
+from flask import json
 
 import api
 from api.models import RiskType, GenericField, FieldType
@@ -24,13 +27,13 @@ class ModelTestCase(unittest.TestCase):
         # create generic fields
         address_field = GenericField(name='Address',
                                      description='Property\'s address',
-                                     field_type=FieldType.TEXT)
+                                     type=FieldType.TEXT)
         cost_field = GenericField(name='Cost',
                                   description='Current market price for the property',
-                                  field_type=FieldType.NUMBER)
+                                  type=FieldType.NUMBER)
         build_date_field = GenericField(name='Built Date',
                                         description='The date the house was built',
-                                        field_type=FieldType.DATE)
+                                        type=FieldType.DATE)
         # add generic fields to risk type
         real_state_risk.fields.extend([address_field, cost_field, build_date_field])
         # commit
@@ -56,7 +59,7 @@ class ModelTestCase(unittest.TestCase):
 
         # create a single field and add it to both types
         cost_field = GenericField(name='Cost', description='Asset\'s Cost',
-                                  field_type=FieldType.NUMBER)
+                                  type=FieldType.NUMBER)
         real_state_risk.fields.append(cost_field)
         car_risk.fields.append(cost_field)
         self.db.session.add_all([real_state_risk, car_risk, cost_field])
@@ -74,62 +77,165 @@ class ModelTestCase(unittest.TestCase):
 
     def test_enum_type_happy_path(self):
         """
-        Enum-typed fields should receive an extra `field_options` parameter.
+        Enum-typed fields should receive an extra `options` parameter.
         """
-        field_options = { 'choices': ['One', 'Two', 'Three'] }
+        options = { 'choices': ['One', 'Two', 'Three'] }
         enum_type_field = GenericField('An enum-typed field',
-                                       field_type=FieldType.ENUM,
-                                       field_options=field_options)
+                                       type=FieldType.ENUM,
+                                       options=options)
         self.db.session.add(enum_type_field)
         self.db.session.commit()
         saved_field = GenericField.query.first()
         assert saved_field is not None
-        assert saved_field.field_options == field_options
+        assert saved_field.options == options
 
     def test_enum_type_requires_options_dict(self):
         """
-        Enum-typed fields may not be created without specifying `field_options`.
+        Enum-typed fields may not be created without specifying `options`.
         """
         with self.assertRaises(ValueError):
             enum_type_field = GenericField('Enum field without options',
-                                           field_type=FieldType.ENUM)
+                                           type=FieldType.ENUM)
 
     def test_enum_type_requires_options_dict_with_at_least_one_choice(self):
         """
         Enum-typed fields may not be created without specifying some choices in
-        the field_options field.
+        the options field.
         """
         with self.assertRaises(ValueError):
             enum_type_field = GenericField('Enum field with empty choices',
-                                           field_type=FieldType.ENUM,
-                                           field_options={ 'choices': [] })
+                                           type=FieldType.ENUM,
+                                           options={ 'choices': [] })
 
     def test_enum_type_requires_options_dict(self):
         """
-        Enum-typed fields require a dictionary as their `field_options`.
+        Enum-typed fields require a dictionary as their `options`.
         """
         with self.assertRaises(ValueError):
             enum_type_field = GenericField('Enum field with non-dict options',
-                                           field_type=FieldType.ENUM,
-                                           field_options='not a dictionary')
+                                           type=FieldType.ENUM,
+                                           options='not a dictionary')
+
+
+def add_random_fields(db, risk, n_fields=3):
+    expected = []
+    field_types = [t for t in FieldType]
+    for index in range(n_fields):
+        field_unique_id = uuid4().hex
+        field_options = {}
+        field_type = field_types[index % len(field_types)]
+        if field_type == FieldType.ENUM:
+            field_options = {
+                'choices': ['Choice A', 'Choice B', 'Choice C']
+            }
+
+        random_field_data = {
+            'name': 'Field {}'.format(field_unique_id),
+            'description': 'Description for field {}'.format(field_unique_id),
+            'type': field_type,
+            'options': field_options,
+        }
+
+        field = GenericField(**random_field_data)
+        risk.fields.append(field)
+        db.session.add(field)
+        db.session.commit()
+
+        random_field_data.update({
+            'id': field.id, 'type': field.type.value
+        })
+
+        expected.append(random_field_data)
+
+    return expected
+
+
+def create_risk(db, risk_name, risk_description, n_fields=0):
+    expected = { 'name': risk_name,
+                 'description': risk_description,
+                 'fields': [] }
+    # create risk
+    risk = RiskType(name=risk_name, description=risk_description)
+    db.session.add(risk)
+    db.session.commit()
+    # now that we have an id, add it to the `expected` response
+    expected['id'] = risk.id
+
+    # add some fields to the risk
+    expected_fields = add_random_fields(db, risk, n_fields)
+    # ... make sure the new fields are included in the response
+    expected['fields'].extend(expected_fields)
+
+    return expected
 
 
 class APITestCase(unittest.TestCase):
+    """ """
+
+    def setUp(self):
+        self.app, self.db = api.create_app('test')
+        self.client = self.app.test_client()
+        with self.app.test_request_context():
+            self.db.create_all()
+        self.api_url = '/risk-types/'
 
     def test_request_risk_type_happy_path(self):
-        pass
+        """
+        Requesting an existing risk-type via the API should return a JSON
+        object with the expected format.
+        """
+        expected_response = create_risk(self.db,
+                                        risk_name='some risk name',
+                                        risk_description='some description',
+                                        n_fields=3)
+        endpoint_url = '{}{}'.format(self.api_url, expected_response['id'])
+        response = self.client.get(endpoint_url)
+        # basic sanity checks for response object
+        assert response.status_code == 200
+        assert response.content_type == 'application/json'
+        # verify response format
+        parsed_response = json.loads(response.data)
+        self.assertEqual(parsed_response, expected_response)
 
     def test_request_risk_type_not_found(self):
-        pass
-
-    def test_request_risk_type_invalid_id(self):
-        pass
+        """
+        Requesting a non-existing risk-type via the API should return a 404
+        response.
+        """
+        url = self.api_url + '1'
+        response = self.client.get(url)
+        assert response.status_code == 404
 
     def test_request_risk_type_collection_happy_path(self):
-        pass
+        """
+        Requesting the list of all risk-types should return each with the
+        expected format.
+        """
+        # create multiple risk types
+        expected_0 = create_risk(self.db, 'risk0', 'risk0 description', 2)
+        expected_1 = create_risk(self.db, 'risk1', 'risk1 description', 3)
+        expected_2 = create_risk(self.db, 'risk2', 'risk2 description', 4)
+        # expected response should be a list of these risk types
+        expected_response = [expected_0, expected_1, expected_2]
+
+        response = self.client.get(self.api_url)
+        assert response.status_code == 200
+        assert response.content_type == 'application/json'
+
+        # verify response format
+        parsed_response = json.loads(response.data)
+        self.assertEqual(parsed_response, expected_response)
 
     def test_request_risk_type_collection_empty(self):
-        pass
+        """
+        Requesting the list of all risk-types should return an empty list if
+        there are no risk types.
+        """
+        response = self.client.get(self.api_url)
+        assert response.status_code == 200
+        assert response.content_type == 'application/json'
+        parsed_response = json.loads(response.data)
+        self.assertEqual(parsed_response, [])
 
 
 if __name__ == '__main__':

@@ -49,10 +49,10 @@ class RiskType(db.Model):
 
     def to_dict(self):
         return {
-            "id": self.id,
-            "name": self.name,
-            "description": self.description,
-            "fields": [field.to_dict() for field in self.fields]
+            'id': self.id,
+            'name': self.name,
+            'description': self.description,
+            'fields': [field.to_dict() for field in self.fields]
         }
 
 
@@ -66,26 +66,27 @@ class GenericField(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text, unique=True)
     description = db.Column(db.Text)
-    field_type = db.Column(db.Enum(FieldType))
-    field_options = db.Column(sqlalchemy_jsonfield.JSONField())
+    type = db.Column(db.Enum(FieldType))
+    options = db.Column(sqlalchemy_jsonfield.JSONField())
 
-    def __init__(self, name, field_type, description='', field_options=None):
+    def __init__(self, name, type, description='', options=None):
         self.name = name
         self.description = description
-        self.field_type = field_type
-        self.field_options = field_options or {}
+        self.type = type
+        self.options = options or {}
 
     def __repr__(self):
         return '<Field {}: {}>'.format(self.id, self.name)
 
-    @validates('field_options')
-    def validate_address(self, key, field_options):
-        return validate_field_options(field_options, self.field_type)
+    @validates('options')
+    def validate_address(self, key, options):
+        return validate_field_options(options, self.type)
 
     def to_dict(self):
         return {
-            "id": self.id,
-            "name": self.name,
-            "description": self.description,
-            "type": self.field_type.code,
+            'id': self.id,
+            'name': self.name,
+            'description': self.description,
+            'type': self.type.value,
+            'options': self.options,
         }
