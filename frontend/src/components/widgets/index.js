@@ -1,7 +1,11 @@
-import TextInputWidget from './TextInputWidget';
-import NumberInputWidget from './NumberInputWidget';
+import TextFieldWidget from './TextFieldWidget';
+import NumberFieldWidget from './NumberFieldWidget';
+import DateFieldWidget from './DateFieldWidget';
+import EnumFieldWidget from './EnumFieldWidget';
 
 export {
-  TextInputWidget,
-  NumberInputWidget,
+  TextFieldWidget,
+  NumberFieldWidget,
+  DateFieldWidget,
+  EnumFieldWidget,
 };

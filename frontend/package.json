@@ -11,7 +11,9 @@
     "build": "node build/build.js"
   },
   "dependencies": {
-    "vue": "^2.5.2"
+    "vue": "^2.5.2",
+    "vue-select": "^2.4.0",
+    "vue2-datepicker": "^1.8.2"
   },
   "devDependencies": {
     "autoprefixer": "^7.1.2",
