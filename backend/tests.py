@@ -45,7 +45,7 @@ class ModelTestCase(unittest.TestCase):
         # query risk type and assert fields are present
         saved_real_state_risk = RiskType.query.first()
         # the risk type should contain all three fields
-        assert 3 == len(saved_real_state_risk.fields)
+        self.assertEqual(len(saved_real_state_risk.fields), 3)
 
     def test_fields_can_be_reused_across_risk_types(self):
         """
@@ -66,14 +66,14 @@ class ModelTestCase(unittest.TestCase):
         self.db.session.commit()
 
         risk_profiles = RiskType.query.all()
-        assert 2 == len(risk_profiles)
+        self.assertEqual(len(risk_profiles), 2)
         real_state_risk = RiskType.query.filter_by(name=real_state_risk_title).first()
         car_risk = RiskType.query.filter_by(name=car_risk_title).first()
         # each risk type should have a single field
-        assert 1 == len(real_state_risk.fields)
-        assert 1 == len(car_risk.fields)
+        self.assertEqual(len(real_state_risk.fields), 1)
+        self.assertEqual(len(car_risk.fields), 1)
         # each risk type's field must be the same
-        assert real_state_risk.fields[0] == car_risk.fields[0]
+        self.assertEqual(real_state_risk.fields[0], car_risk.fields[0])
 
     def test_enum_type_happy_path(self):
         """
@@ -86,8 +86,8 @@ class ModelTestCase(unittest.TestCase):
         self.db.session.add(enum_type_field)
         self.db.session.commit()
         saved_field = GenericField.query.first()
-        assert saved_field is not None
-        assert saved_field.options == options
+        self.assertIsNotNone(saved_field)
+        self.assertEqual(saved_field.options, options)
 
     def test_enum_type_requires_options_dict(self):
         """
@@ -191,8 +191,8 @@ class APITestCase(unittest.TestCase):
         endpoint_url = '{}{}'.format(self.api_url, expected_response['id'])
         response = self.client.get(endpoint_url)
         # basic sanity checks for response object
-        assert response.status_code == 200
-        assert response.content_type == 'application/json'
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content_type, 'application/json')
         # verify response format
         parsed_response = json.loads(response.data)
         self.assertEqual(parsed_response, expected_response)
@@ -204,7 +204,7 @@ class APITestCase(unittest.TestCase):
         """
         url = self.api_url + '1'
         response = self.client.get(url)
-        assert response.status_code == 404
+        self.assertEqual(response.status_code, 404)
 
     def test_request_risk_type_collection_happy_path(self):
         """
@@ -219,8 +219,8 @@ class APITestCase(unittest.TestCase):
         expected_response = [expected_0, expected_1, expected_2]
 
         response = self.client.get(self.api_url)
-        assert response.status_code == 200
-        assert response.content_type == 'application/json'
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content_type, 'application/json')
 
         # verify response format
         parsed_response = json.loads(response.data)
@@ -232,8 +232,8 @@ class APITestCase(unittest.TestCase):
         there are no risk types.
         """
         response = self.client.get(self.api_url)
-        assert response.status_code == 200
-        assert response.content_type == 'application/json'
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content_type, 'application/json')
         parsed_response = json.loads(response.data)
         self.assertEqual(parsed_response, [])
 
