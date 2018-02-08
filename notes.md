@@ -157,7 +157,11 @@ FLASK_APP_SETTINGS_NAME=local python run.py
 ### Frontend
 
 0. Go to the `frontend` folder
-1. Run the development server
+1. Install the dependencies
+```
+yarn install
+```
+2. Run the development server
 ```
 yarn run dev
 ```
@@ -221,3 +225,11 @@ aws s3 website s3://britecore-interview-kirbuchi/ --index-document index.html --
 ```
 aws s3 sync dist s3://britecore-interview-kirbuchi --acl "public-read"
 ```
+
+The website's URL will be:
+
+```
+http://[name of the bucket].s3-website-[region].amazonaws.com/
+```
+
+For the above instructions: http://britecore-interview-kirbuchi.s3-website-us-east-1.amazonaws.com/
