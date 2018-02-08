@@ -1,0 +1,13 @@
+{
+    "dev": {
+        "app_function": "api.__init__.zappa_entry",
+        "aws_region": "us-east-1",
+        "profile_name": "default",
+        "project_name": "backend",
+        "runtime": "python3.6",
+        "s3_bucket": "zappa-9ciqcixhv",
+        "environment_variables": {
+            "FLASK_APP_SETTINGS_NAME": "aws_lambda_demo"
+        }
+    }
+}
