@@ -18,19 +18,125 @@
       - Mega bonus points for AWS Lambda with Zappa
     - Send github repo to phil@britecore.com
   - Data:
-    - [ ] Python file containing ORM classes
-    - [ ] An entity-relationship diagram
+    - Python file containing ORM classes
+    - An entity-relationship diagram
   - Backend
-    - [ ] Two endpoints (REST API)
-      - [ ] Return a single risk type
-      - [ ] List of all risk types (all data for each)
-      - [ ] Tests
+    - Two endpoints (REST API)
+      - Return a single risk type
+      - List of all risk types (all data for each)
+      - Tests
   - Frontend
-    - [ ] Single page
-    - [ ] Display field types in a form (show all fields types)
-    - [ ] Fields should be appropriate widgets
-    - [ ] Use ES6
-    - [ ] Use Vue.js for bonus points
+    - Single page
+    - Display field types in a form (show all fields types)
+    - Fields should be appropriate widgets
+    - Use ES6
+    - Use Vue.js for bonus points
+
+## Schema
+
+The database schema is made up two Models:
+
+1. RiskType (`risk_types` table):
+
+Holds the specifications for a type of risk. An instance can have 0 or many
+fields attached to it.
+
+2. GenericField (`generic_fields` table)
+
+Holds a field that may be added to 0 or many risk types. Something noteworthy is
+that the `options` field which is JSON field. Currently it only holds the
+choices an `enum`-typed field may have, but can potentially be used to hold
+extra parameters about a field (e.g. min/max for numeric fields, formatting
+restrictions for text fields, etc).
+
+The intermediary table (`risk_type_fields`) links both models in a many-to-many
+relationship.
+
+![Entity Relationship Diagram](./img/erd.png)
+
+Note: field types could potentially have their own table as well to allow new
+types to be added easily. However, these types are primitive data types which
+don't allow for much growth. IMO its more convenient to have only the basic
+types and add range and format validations via the `options` in the
+`GenericField` model.
+
+
+## API
+
+### Single Risk Type `(/risk-types/:id)`
+
+- Supported Methods: [GET]
+- Description: Retrieves a single risk type specification.
+- Example Response:
+
+```
+{
+  "id": 1,
+  "name": "Car Risk",
+  "description": "Risk model used for evaluating car insurance.",
+  "fields": [
+    {
+      "id": 1,
+      "name": "Model",
+      "description": "The model of car.",
+      "options": {},
+      "type": "text"
+    },
+    {
+      "id": 2,
+      "name": "Date of manufacture",
+      "description": "When was the car manufactured.",
+      "options": {},
+      "type": "date"
+    },
+    {
+      "id": 3,
+      "name": "Color",
+      "description": "The color of the car",
+      "options": {
+        "choices": [
+          "Red",
+          "Green",
+          "Blue",
+          "Black"
+        ]
+      },
+      "type": "enum"
+    },
+    {
+      "id": 4,
+      "name": "Mileage",
+      "description": "How many miles are shown in the Odometer.",
+      "options": {},
+      "type": "number"
+    }
+  ]
+}
+```
+
+### Multiple Risk Types `(/risk-types)`
+
+- Supported Methods: [GET]
+- Description: Retrieves a list of all the risk type specification.
+- Example Response:
+
+```
+[
+  {
+    "id": 1,
+    "name": "Car Risk",
+    "description": "Risk model used for evaluating car insurance.",
+    "fields": [ ... ],
+  },
+  {
+    "id": 2,
+    "name": "Price Insurance Risk",
+    "description": "Model used for evaluating risks associated with price insurance.",
+    "fields": [ ... ],
+  },
+  ...
+]
+```
 
 ## Local development
 
