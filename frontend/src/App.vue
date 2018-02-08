@@ -1,23 +1,18 @@
 <template>
   <div id="app">
-    <RiskTypeForm v-if="riskTypeId" :riskTypeId="riskTypeId" />
-    <RiskTypeList v-else />
+    <router-view></router-view>
   </div>
 </template>
 
 <script>
-import RiskTypeForm from '@/components/RiskTypeForm';
-import RiskTypeList from '@/components/RiskTypeList';
+import routes from '@/routes';
+import VueRouter from 'vue-router';
+
+const router = new VueRouter({ routes });
 
 export default {
+  router,
   name: 'App',
-  data() {
-    return { riskTypeId: window.location.pathname.match('[0-9]+') };
-  },
-  components: {
-    RiskTypeForm,
-    RiskTypeList,
-  },
 };
 </script>
 

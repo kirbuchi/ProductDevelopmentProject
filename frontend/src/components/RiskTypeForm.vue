@@ -15,7 +15,6 @@ import RiskTypeField from '@/components/RiskTypeField';
 import { loadRiskTypeSpecification } from '@/services';
 
 export default {
-  props: ['riskTypeId'],
   data() {
     return {
       riskSpecification: {},
@@ -24,7 +23,7 @@ export default {
     };
   },
   created() {
-    loadRiskTypeSpecification(this.riskTypeId)
+    loadRiskTypeSpecification(this.$route.params.id)
       .then((data) => {
         this.riskSpecification = data;
       }).catch((error) => {

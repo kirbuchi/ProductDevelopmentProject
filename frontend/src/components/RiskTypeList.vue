@@ -1,6 +1,5 @@
 <docs>
 ## Utility component to help navigation of different risk types.
-## Using real links just for demo purposes.
 </docs>
 
 <template>
@@ -9,7 +8,9 @@
   <ul>
     <li v-for="riskType of riskTypes"
         :key="riskType.id">
-      <a :href="riskType.id">{{ riskType.name }}</a>
+      <router-link :to="{ name: 'form', params: { id: riskType.id }}">
+        {{ riskType.name }}
+      </router-link>
     </li>
   </ul>
 </div>
