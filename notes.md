@@ -198,7 +198,7 @@ zappa invoke dev demo_fixtures.create_demo_data
 
 0. Move to the `frontend` directory.
 
-1. Build the frontend (note we're using the URL from the backend's deploy step)
+1. Build the frontend (note we're using the URL from the backend's deploy step to tell the frontend where to send the API requests)
 
 ```
 API_BASE_URL='https://u9hhr6ktg1.execute-api.us-east-1.amazonaws.com/dev' yarn run build --report
