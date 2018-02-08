@@ -1,16 +1,22 @@
 <template>
   <div id="app">
-    <RiskTypeForm/>
+    <RiskTypeForm v-if="riskTypeId" :riskTypeId="riskTypeId" />
+    <RiskTypeList v-else />
   </div>
 </template>
 
 <script>
 import RiskTypeForm from '@/components/RiskTypeForm';
+import RiskTypeList from '@/components/RiskTypeList';
 
 export default {
   name: 'App',
+  data() {
+    return { riskTypeId: window.location.pathname.match('[0-9]+') };
+  },
   components: {
     RiskTypeForm,
+    RiskTypeList,
   },
 };
 </script>

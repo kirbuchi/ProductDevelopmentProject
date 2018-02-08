@@ -1,13 +1,13 @@
 <template>
-  <div class="riskField">
-    <label :for="fieldId">{{ spec.name }}:</label>
-    <component :id="fieldId"
-               :is="typeToComponent(spec.type)"
-               :options="spec.options"
-               @input="updateValue"
-               v-model="value" />
-    <small>{{ spec.description }}</small>
-  </div>
+<div class="riskField">
+  <label :for="fieldId">{{ spec.name }}:</label>
+  <component :id="fieldId"
+              :is="typeToComponent(spec.type)"
+              :options="spec.options"
+              :value="value"
+              @input="updateValue" />
+  <small>{{ spec.description }}</small>
+</div>
 </template>
 
 <script>
@@ -18,22 +18,20 @@ import {
   EnumFieldWidget,
 } from '@/components/widgets';
 
+const fieldTypeToComponentMapping = {
+  text: TextFieldWidget,
+  number: NumberFieldWidget,
+  date: DateFieldWidget,
+  enum: EnumFieldWidget,
+};
+
 export default {
   props: ['value', 'spec'],
   methods: {
     typeToComponent(type) {
-      const mapping = {
-        text: TextFieldWidget,
-        number: NumberFieldWidget,
-        date: DateFieldWidget,
-        enum: EnumFieldWidget,
-      };
-      return mapping[type];
+      return fieldTypeToComponentMapping[type];
     },
     updateValue(newValue) { this.$emit('input', newValue); },
-  },
-  data() {
-    return { fieldValue: null };
   },
   computed: {
     fieldId() { return `field_${this.spec.id}`; },
