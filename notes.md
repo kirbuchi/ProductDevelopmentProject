@@ -32,7 +32,35 @@
     - [ ] Use ES6
     - [ ] Use Vue.js for bonus points
 
+## Local development
+
+### Backend
+
+0. Go to the `backend` folder
+1. Create a virtualenv and activate it
+2. Install `requirements.txt`
+3. Create the database tables
+```
+FLASK_APP_SETTINGS_NAME=local python syncdb.py
+```
+4. Run the app via:
+```
+FLASK_APP_SETTINGS_NAME=local python run.py
+```
+
+### Frontend
+
+0. Go to the `frontend` folder
+1. Run the development server
+```
+yarn run dev
+```
+
 ## Deployment to AWS
+
+The application is comprised of two parts. The backend is a Flask app and the
+frontend is a Vuejs SPA. The former can be deployed to AWS Lambda via Zappa,
+while the latter can be served via S3.
 
 ### Setup Flask app with Zappa on AWS Lambda
 
