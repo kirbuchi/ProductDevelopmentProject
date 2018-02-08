@@ -1,74 +1,11 @@
 # -*- coding: utf-8 -*-
 import unittest
-from uuid import uuid4
 
 from flask import json
 
 import api
 from api.models import RiskType, GenericField, FieldType
-
-
-def add_random_fields(db, risk, n_fields=3):
-    """
-    Utility function for adding `n_fields` randomly generated fields to a
-    `risk` instance.
-
-    Returned value is the serialized representation of the list of fields.
-    """
-    expected = []
-    field_types = [t for t in FieldType]
-    for index in range(n_fields):
-        field_unique_id = uuid4().hex
-        field_options = {}
-        field_type = field_types[index % len(field_types)]
-        if field_type == FieldType.ENUM:
-            field_options = {
-                'choices': ['Choice A', 'Choice B', 'Choice C']
-            }
-
-        random_field_data = {
-            'name': 'Field {}'.format(field_unique_id),
-            'description': 'Description for field {}'.format(field_unique_id),
-            'type': field_type,
-            'options': field_options,
-        }
-
-        field = GenericField(**random_field_data)
-        risk.fields.append(field)
-        db.session.add(field)
-        db.session.commit()
-
-        random_field_data.update({
-            'id': field.id, 'type': field.type.value
-        })
-
-        expected.append(random_field_data)
-
-    return expected
-
-
-def create_risk(db, risk_name, risk_description, n_fields=0):
-    """
-    Utility function to create a risk and it's fields.
-
-    Returned value is the serialized representation of the risk.
-    """
-    expected = { 'name': risk_name,
-                 'description': risk_description,
-                 'fields': [] }
-    # create risk
-    risk = RiskType(name=risk_name, description=risk_description)
-    db.session.add(risk)
-    db.session.commit()
-    # now that we have an id, add it to the `expected` response
-    expected['id'] = risk.id
-
-    # add some fields to the risk
-    expected_fields = add_random_fields(db, risk, n_fields)
-    # ... make sure the new fields are included in the response
-    expected['fields'].extend(expected_fields)
-
-    return expected
+from api.utils import create_risk
 
 
 class ModelTestCase(unittest.TestCase):
