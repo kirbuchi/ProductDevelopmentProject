@@ -51,9 +51,12 @@ export default {
 }
 
 .riskField input {
+    box-sizing: border-box;
     width: 100%;
     height: 2.5em;
-    border-radius: 5px;
+    border-radius: 4px;
+    font-size: medium;
+    border: 1px solid rgba(60,60,60,.26);
 }
 
 .riskField label {

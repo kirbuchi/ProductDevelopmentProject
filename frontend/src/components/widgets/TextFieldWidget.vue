@@ -13,4 +13,8 @@ export default {
 };
 </script>
 
-<style></style>
+<style>
+input {
+    padding-left: .5em;
+}
+</style>

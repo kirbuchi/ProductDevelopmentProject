@@ -22,8 +22,13 @@ export default {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     color: #2c3e50;
-    margin-top: 60px;
-    margin-left: 30%;
-    margin-right: 30%;
+    width: 650px;
+    margin:60px auto;
+}
+
+@media (max-width: 700px) {
+    #app {
+        width: 100%
+    }
 }
 </style>
